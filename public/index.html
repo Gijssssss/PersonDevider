@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PersonDevider – Group People from Excel</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <span class="logo">👥</span>
+      <h1>PersonDevider</h1>
+      <p class="tagline">Upload an Excel list, choose a grouping strategy, get balanced groups.</p>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ── STEP 1: Upload ── -->
+    <section class="card" id="section-upload">
+      <h2><span class="step-badge">1</span> Upload Excel File</h2>
+      <p class="hint">The file must have <strong>names in column A</strong> and <strong>number of people in column B</strong>.</p>
+
+      <div class="drop-zone" id="dropZone" tabindex="0" role="button" aria-label="Drop Excel file here or click to browse">
+        <span class="drop-icon">📂</span>
+        <p>Drag &amp; drop your <code>.xlsx</code> file here</p>
+        <p class="or">— or —</p>
+        <label class="btn btn-outline" for="fileInput">Browse file</label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" hidden />
+        <p class="file-name" id="fileName"></p>
+      </div>
+
+      <div class="alert alert-error hidden" id="uploadError"></div>
+    </section>
+
+    <!-- ── STEP 2: Preview ── -->
+    <section class="card hidden" id="section-preview">
+      <h2><span class="step-badge">2</span> Verify Imported Data</h2>
+      <p class="hint">
+        <strong id="totalSummary"></strong>
+      </p>
+      <div class="table-wrap">
+        <table id="previewTable">
+          <thead>
+            <tr><th>#</th><th>Name</th><th>People</th></tr>
+          </thead>
+          <tbody id="previewBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── STEP 3: Grouping options ── -->
+    <section class="card hidden" id="section-options">
+      <h2><span class="step-badge">3</span> Choose Grouping Strategy</h2>
+
+      <div class="options-grid">
+        <label class="option-card selected" id="opt-count">
+          <input type="radio" name="mode" value="count" checked />
+          <span class="opt-icon">🔢</span>
+          <span class="opt-title">Number of groups</span>
+          <span class="opt-desc">Split into a fixed number of groups</span>
+        </label>
+
+        <label class="option-card" id="opt-size">
+          <input type="radio" name="mode" value="size" />
+          <span class="opt-icon">👤</span>
+          <span class="opt-title">People per group</span>
+          <span class="opt-desc">Set a desired group size</span>
+        </label>
+
+        <label class="option-card" id="opt-auto">
+          <input type="radio" name="mode" value="auto" />
+          <span class="opt-icon">⚖️</span>
+          <span class="opt-title">Auto-balance</span>
+          <span class="opt-desc">Let the app find the best split</span>
+        </label>
+      </div>
+
+      <div class="value-row" id="valueRow">
+        <label for="groupValue" id="valueLabel">Number of groups:</label>
+        <input type="number" id="groupValue" class="number-input" min="1" value="4" />
+      </div>
+
+      <button class="btn btn-primary" id="generateBtn">Generate Groups</button>
+      <div class="alert alert-error hidden" id="generateError"></div>
+    </section>
+
+    <!-- ── STEP 4: Results ── -->
+    <section class="card hidden" id="section-results">
+      <h2><span class="step-badge">4</span> Groups</h2>
+      <div class="results-toolbar">
+        <p class="hint" id="resultsSummary"></p>
+        <div class="toolbar-actions">
+          <button class="btn btn-outline" id="reshuffleBtn">🔀 Reshuffle</button>
+          <button class="btn btn-primary" id="exportBtn">⬇ Export to Excel</button>
+        </div>
+      </div>
+      <div class="groups-grid" id="groupsGrid"></div>
+      <div class="alert alert-error hidden" id="exportError"></div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>PersonDevider &copy; 2025 – built with ❤️</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
