@@ -33,7 +33,10 @@ const exportError     = document.getElementById('exportError');
    FILE UPLOAD
 ══════════════════════════════════════════ */
 
-dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('click', (e) => {
+  if (e.target.closest('label')) return;
+  fileInput.click();
+});
 dropZone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
 
 dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
