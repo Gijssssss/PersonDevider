@@ -32,7 +32,7 @@ body {
   padding: 2.5rem 1rem 2rem;
   text-align: center;
 }
-.header-inner { max-width: 640px; margin: 0 auto; }
+.header-inner { max-width: 900px; margin: 0 auto; }
 .logo { font-size: 3rem; display: block; margin-bottom: .4rem; }
 .app-header h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -.5px; }
 .tagline { margin-top: .5rem; opacity: .88; font-size: .95rem; }
@@ -46,6 +46,19 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 2rem 3rem 4rem;
+  }
+  .header-inner {
+    max-width: none;
+    padding: 0 2rem;
+  }
 }
 
 /* ── Card ── */
