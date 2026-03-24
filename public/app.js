@@ -43,7 +43,7 @@ navHome.addEventListener('click', () => {
 
 navSearch.addEventListener('click', () => {
   setActiveNav(navSearch);
-  if (!sectionPreview.classList.contains('hidden')) {
+  if (!sectionPreview.classList.contains('d-none')) {
     sectionPreview.scrollIntoView({ behavior: 'smooth', block: 'start' });
     previewSearch.focus();
   }
@@ -161,9 +161,9 @@ optCards.forEach((card) => {
 
 function updateValueRow() {
   if (currentMode === 'auto') {
-    valueRow.classList.add('hidden');
+    valueRow.classList.add('d-none');
   } else {
-    valueRow.classList.remove('hidden');
+    valueRow.classList.remove('d-none');
     valueLabel.textContent =
       currentMode === 'count' ? 'Number of groups:' : 'People per group:';
     groupValue.value = currentMode === 'count' ? '4' : '8';
@@ -242,50 +242,52 @@ function renderGroups() {
 
   groupsGrid.innerHTML = '';
   groups.forEach((group) => {
-    const card = document.createElement('div');
-    card.className = 'group-card';
-    card.innerHTML = `
-      <div class="group-card-header">
-        <h3>Group ${group.id}</h3>
-        <span class="group-total-badge">👥 ${group.totalPeople}</span>
-      </div>
-      <div class="group-card-body">
-        ${group.members
-          .map(
-            (m) => `
-          <div class="member-row">
-            <span class="member-name">${escHtml(m.name)}</span>
-            <span class="member-count">${m.count}</span>
-          </div>`
-          )
-          .join('')}
-      </div>
-      <div class="group-card-actions">
-        <button class="icon-btn icon-btn-edit" title="Edit group" aria-label="Edit group ${group.id}">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>
-        </button>
-        <button class="icon-btn icon-btn-link" title="Copy group" aria-label="Copy group ${group.id}">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-        </button>
-        <button class="icon-btn icon-btn-block" title="Clear group" aria-label="Clear group ${group.id}">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-        </button>
-        <button class="icon-btn icon-btn-delete" title="Delete group" aria-label="Delete group ${group.id}" data-group-id="${group.id}">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-        </button>
+    const col = document.createElement('div');
+    col.className = 'col-12 col-sm-6 col-lg-4';
+    col.innerHTML = `
+      <div class="card h-100">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h3 class="h6 mb-0 fw-bold">Group ${group.id}</h3>
+          <span class="badge bg-light text-primary">👥 ${group.totalPeople}</span>
+        </div>
+        <div class="card-body p-2">
+          ${group.members
+            .map(
+              (m) => `
+            <div class="d-flex justify-content-between align-items-center px-2 py-1 mb-1 rounded bg-light">
+              <span class="fw-medium">${escHtml(m.name)}</span>
+              <span class="badge bg-secondary">${m.count}</span>
+            </div>`
+            )
+            .join('')}
+        </div>
+        <div class="card-footer d-flex justify-content-end gap-2 bg-light">
+          <button class="btn btn-sm btn-primary icon-btn-edit" title="Edit group" aria-label="Edit group ${group.id}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>
+          </button>
+          <button class="btn btn-sm btn-secondary icon-btn-link" title="Copy group" aria-label="Copy group ${group.id}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          </button>
+          <button class="btn btn-sm btn-warning icon-btn-block" title="Clear group" aria-label="Clear group ${group.id}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          </button>
+          <button class="btn btn-sm btn-danger icon-btn-delete" title="Delete group" aria-label="Delete group ${group.id}" data-group-id="${group.id}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
       </div>`;
 
     // Delete group handler
-    card.querySelector('.icon-btn-delete').addEventListener('click', () => {
+    col.querySelector('.icon-btn-delete').addEventListener('click', () => {
       groups = groups.filter((g) => g.id !== group.id);
       if (groups.length === 0) {
-        sectionResults.classList.add('hidden');
+        sectionResults.classList.add('d-none');
       } else {
         renderGroups();
       }
     });
 
-    groupsGrid.appendChild(card);
+    groupsGrid.appendChild(col);
   });
 
   show(sectionResults);
@@ -357,15 +359,15 @@ async function exportToExcel() {
    HELPERS
 ══════════════════════════════════════════ */
 
-function show(el) { el.classList.remove('hidden'); }
+function show(el) { el.classList.remove('d-none'); }
 
 function setError(el, msg) {
   if (msg) {
     el.textContent = msg;
-    el.classList.remove('hidden');
+    el.classList.remove('d-none');
   } else {
     el.textContent = '';
-    el.classList.add('hidden');
+    el.classList.add('d-none');
   }
 }
 
