@@ -40,7 +40,203 @@ const reshuffleBtn   = document.getElementById('reshuffleBtn');
 const exportBtn      = document.getElementById('exportBtn');
 const exportError    = document.getElementById('exportError');
 
-const fabBtn = document.getElementById('fabBtn');
+const fabBtn         = document.getElementById('fabBtn');
+const newProjectBtn  = document.querySelector('.btn-new-project');
+const historyLink    = document.getElementById('historyLink');
+const notifBtn       = document.getElementById('notifBtn');
+const notifBadge     = document.getElementById('notifBadge');
+const notifDropdown  = document.getElementById('notifDropdown');
+const notifList      = document.getElementById('notifList');
+const clearNotifsBtn = document.getElementById('clearNotifsBtn');
+const historyModal   = document.getElementById('historyModal');
+const historyBody    = document.getElementById('historyBody');
+const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+const settingsModal  = document.getElementById('settingsModal');
+const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+const saveSettingsBtn  = document.getElementById('saveSettingsBtn');
+const defaultGroupCount = document.getElementById('defaultGroupCount');
+const defaultModeSelect = document.getElementById('defaultModeSelect');
+
+/* ══════════════════════════════════════════
+   HISTORY
+══════════════════════════════════════════ */
+const HISTORY_KEY = 'pd_history';
+const MAX_HISTORY = 20;
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch { return []; }
+}
+
+function saveHistoryEntry(entry) {
+  const hist = getHistory();
+  hist.unshift(entry);
+  if (hist.length > MAX_HISTORY) hist.length = MAX_HISTORY;
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+}
+
+function renderHistory() {
+  const hist = getHistory();
+  if (!hist.length) {
+    historyBody.innerHTML = '<p class="modal-empty">No history yet. Generate groups to see them here.</p>';
+    return;
+  }
+  historyBody.innerHTML = hist.map((h, i) => `
+    <div class="history-item">
+      <div class="history-item-info">
+        <span class="history-item-title">${h.numGroups} group${h.numGroups !== 1 ? 's' : ''} &middot; ${h.numPeople} people</span>
+        <span class="history-item-date">${new Date(h.date).toLocaleString()}</span>
+      </div>
+      <button class="btn-outline history-restore-btn" style="padding:6px 14px;font-size:.8rem" data-index="${i}">Restore</button>
+    </div>`).join('');
+
+  historyBody.querySelectorAll('.history-restore-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const h = hist[parseInt(btn.dataset.index)];
+      people = h.people;
+      groups = h.groups;
+      showPreview();
+      renderGroups();
+      hide(historyModal);
+    });
+  });
+}
+
+historyLink.addEventListener('click', (e) => {
+  e.preventDefault();
+  renderHistory();
+  show(historyModal);
+});
+
+closeHistoryBtn.addEventListener('click', () => hide(historyModal));
+
+/* ══════════════════════════════════════════
+   SETTINGS
+══════════════════════════════════════════ */
+const SETTINGS_KEY = 'pd_settings';
+
+function getSettings() {
+  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; }
+}
+
+function applySettings() {
+  const s = getSettings();
+  if (s.defaultGroupCount) groupValue.value = s.defaultGroupCount;
+  if (s.defaultMode) {
+    const radio = document.querySelector(`input[name="mode"][value="${s.defaultMode}"]`);
+    if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change')); }
+  }
+}
+
+function openSettings() {
+  const s = getSettings();
+  defaultGroupCount.value   = s.defaultGroupCount || 4;
+  defaultModeSelect.value   = s.defaultMode       || 'count';
+  show(settingsModal);
+}
+
+document.getElementById('settingsBtn').addEventListener('click', openSettings);
+closeSettingsBtn.addEventListener('click', () => hide(settingsModal));
+
+saveSettingsBtn.addEventListener('click', () => {
+  const s = { defaultGroupCount: parseInt(defaultGroupCount.value) || 4, defaultMode: defaultModeSelect.value };
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  applySettings();
+  hide(settingsModal);
+  addNotification('Settings saved.');
+});
+
+/* ══════════════════════════════════════════
+   NOTIFICATIONS
+══════════════════════════════════════════ */
+const NOTIFS_KEY = 'pd_notifications';
+
+function getNotifications() {
+  try { return JSON.parse(localStorage.getItem(NOTIFS_KEY)) || []; } catch { return []; }
+}
+
+function addNotification(message) {
+  const notifs = getNotifications();
+  notifs.unshift({ message, date: new Date().toISOString(), read: false });
+  if (notifs.length > 50) notifs.length = 50;
+  localStorage.setItem(NOTIFS_KEY, JSON.stringify(notifs));
+  updateNotifBadge();
+}
+
+function updateNotifBadge() {
+  const count = getNotifications().filter((n) => !n.read).length;
+  if (count > 0) {
+    notifBadge.textContent = count > 9 ? '9+' : count;
+    notifBadge.classList.remove('hidden');
+  } else {
+    notifBadge.classList.add('hidden');
+  }
+}
+
+function renderNotifications() {
+  const notifs = getNotifications();
+  if (!notifs.length) {
+    notifList.innerHTML = '<p class="notif-empty">No notifications yet.</p>';
+    return;
+  }
+  notifList.innerHTML = notifs.map((n) => `
+    <div class="notif-item">
+      <span class="notif-message">${escHtml(n.message)}</span>
+      <span class="notif-date">${new Date(n.date).toLocaleString()}</span>
+    </div>`).join('');
+}
+
+function markAllRead() {
+  const notifs = getNotifications().map((n) => ({ ...n, read: true }));
+  localStorage.setItem(NOTIFS_KEY, JSON.stringify(notifs));
+  updateNotifBadge();
+}
+
+notifBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isOpen = !notifDropdown.classList.contains('hidden');
+  if (isOpen) {
+    hide(notifDropdown);
+  } else {
+    renderNotifications();
+    show(notifDropdown);
+    markAllRead();
+    positionNotifDropdown();
+  }
+});
+
+clearNotifsBtn.addEventListener('click', () => {
+  localStorage.removeItem(NOTIFS_KEY);
+  renderNotifications();
+  updateNotifBadge();
+});
+
+function positionNotifDropdown() {
+  const btnRect = notifBtn.getBoundingClientRect();
+  notifDropdown.style.top  = (btnRect.bottom + 8) + 'px';
+  notifDropdown.style.right = (window.innerWidth - btnRect.right) + 'px';
+}
+
+/* ── Close dropdown/modals on outside click or Escape ── */
+document.addEventListener('click', (e) => {
+  if (!notifDropdown.classList.contains('hidden') &&
+      !notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) {
+    hide(notifDropdown);
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  hide(notifDropdown);
+  hide(historyModal);
+  hide(settingsModal);
+});
+
+historyModal.addEventListener('click', (e) => { if (e.target === historyModal) hide(historyModal); });
+settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) hide(settingsModal); });
+
+/* Apply saved settings on load */
+applySettings();
+updateNotifBadge();
 
 /* ── Strategy toggle ── */
 changeStrategyBtn.addEventListener('click', (e) => {
@@ -50,8 +246,26 @@ changeStrategyBtn.addEventListener('click', (e) => {
   changeStrategyBtn.textContent = isOpen ? 'Change Strategy →' : 'Hide Options ↑';
 });
 
-/* ── FAB scrolls to top ── */
-fabBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+/* ── New Project / Reset ── */
+function resetProject() {
+  people = [];
+  groups = [];
+  fileName.textContent       = '';
+  fileInput.value            = '';
+  insightsCount.textContent  = '0';
+  insightsDetail.textContent = 'Upload a file to begin.';
+  hide(sectionPreview);
+  hide(ctaSection);
+  hide(sectionResults);
+  setError(uploadError, '');
+  setError(generateError, '');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+newProjectBtn.addEventListener('click', resetProject);
+
+/* ── FAB resets project ── */
+fabBtn.addEventListener('click', resetProject);
 
 /* ── Browse button ── */
 browseBtn.addEventListener('click', (e) => {
@@ -248,6 +462,15 @@ function generateGroups() {
   }
 
   groups = buildGroups(people, numGroups);
+  const totalPeople = people.reduce((s, p) => s + p.count, 0);
+  saveHistoryEntry({
+    date: new Date().toISOString(),
+    numPeople: totalPeople,
+    numGroups: groups.length,
+    people: [...people],
+    groups: groups.map((g) => ({ ...g, members: [...g.members] })),
+  });
+  addNotification(`Generated ${groups.length} group${groups.length !== 1 ? 's' : ''} with ${totalPeople} people.`);
   renderGroups();
 }
 
