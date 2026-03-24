@@ -4,158 +4,167 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PersonDevider – Group People from Excel</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <header class="app-header">
-    <div class="header-inner">
-      <span class="logo">👥</span>
-      <div>
-        <h1>PersonDevider</h1>
-        <p class="tagline">Upload an Excel list, choose a grouping strategy, get balanced groups.</p>
+<body class="bg-light">
+
+  <header class="bg-primary text-white py-4 mb-4">
+    <div class="container">
+      <div class="d-flex align-items-center gap-3">
+        <span style="font-size:2rem">👥</span>
+        <div>
+          <h1 class="h3 mb-0 fw-bold">PersonDevider</h1>
+          <p class="mb-0 small opacity-75">Upload an Excel list, choose a grouping strategy, get balanced groups.</p>
+        </div>
       </div>
     </div>
   </header>
 
-  <main class="container">
+  <main class="container pb-5">
 
     <!-- ── STEP 1: Upload ── -->
-    <section class="card" id="section-upload">
-      <h2><span class="step-badge">1</span> Upload Excel File</h2>
-      <p class="hint">The file must have <strong>names in column A</strong> and <strong>number of people in column B</strong>.</p>
+    <div class="card mb-4" id="section-upload">
+      <div class="card-body">
+        <h2 class="h5 fw-bold mb-3"><span class="badge bg-primary me-2">1</span> Upload Excel File</h2>
+        <p class="text-muted small">The file must have <strong>names in column A</strong> and <strong>number of people in column B</strong>.</p>
 
-      <div class="drop-zone" id="dropZone" tabindex="0" role="button" aria-label="Drop Excel file here or click to browse">
-        <span class="drop-icon" aria-hidden="true">
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="48" height="48" rx="16" fill="currentColor" fill-opacity="0.15"/>
-            <path d="M24 14v14M18 22l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M14 32h20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <p>Drag &amp; drop your <code>.xlsx</code> file here</p>
-        <p class="or">— or —</p>
-        <label class="btn btn-secondary" for="fileInput">Browse file</label>
-        <input type="file" id="fileInput" accept=".xlsx,.xls" hidden />
-        <p class="file-name" id="fileName"></p>
+        <div class="drop-zone border rounded p-5 text-center" id="dropZone" tabindex="0" role="button" aria-label="Drop Excel file here or click to browse">
+          <div class="text-primary mb-3">
+            <svg width="56" height="56" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect width="48" height="48" rx="16" fill="currentColor" fill-opacity="0.15"/>
+              <path d="M24 14v14M18 22l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14 32h20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <p class="text-muted mb-1">Drag &amp; drop your <code>.xlsx</code> file here</p>
+          <p class="text-muted small mb-3">— or —</p>
+          <label class="btn btn-secondary" for="fileInput">Browse file</label>
+          <input type="file" id="fileInput" accept=".xlsx,.xls" hidden />
+          <p class="fw-semibold text-primary mt-2 mb-0" id="fileName"></p>
+        </div>
+
+        <div class="alert alert-danger d-none mt-3" id="uploadError"></div>
       </div>
-
-      <div class="alert alert-error hidden" id="uploadError"></div>
-    </section>
+    </div>
 
     <!-- ── STEP 2: Preview ── -->
-    <section class="card hidden" id="section-preview">
-      <h2><span class="step-badge">2</span> Verify Imported Data</h2>
-      <p class="hint">
-        <strong id="totalSummary"></strong>
-      </p>
+    <div class="card mb-4 d-none" id="section-preview">
+      <div class="card-body">
+        <h2 class="h5 fw-bold mb-3"><span class="badge bg-primary me-2">2</span> Verify Imported Data</h2>
+        <p class="text-muted small mb-3"><strong id="totalSummary"></strong></p>
 
-      <!-- Search bar -->
-      <div class="search-wrap">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input type="search" id="previewSearch" class="search-input" placeholder="Search names…" autocomplete="off" />
-      </div>
+        <div class="input-group mb-3">
+          <span class="input-group-text">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </span>
+          <input type="search" id="previewSearch" class="form-control" placeholder="Search names…" autocomplete="off" />
+        </div>
 
-      <div class="table-wrap">
-        <table id="previewTable">
-          <thead>
-            <tr><th>#</th><th>Name</th><th>People</th></tr>
-          </thead>
-          <tbody id="previewBody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ── STEP 3: Grouping options ── -->
-    <section class="card hidden" id="section-options">
-      <h2><span class="step-badge">3</span> Choose Grouping Strategy</h2>
-
-      <div class="options-grid">
-        <label class="option-card selected" id="opt-count">
-          <input type="radio" name="mode" value="count" checked />
-          <span class="opt-icon">🔢</span>
-          <span class="opt-title">Number of groups</span>
-          <span class="opt-desc">Split into a fixed number of groups</span>
-        </label>
-
-        <label class="option-card" id="opt-size">
-          <input type="radio" name="mode" value="size" />
-          <span class="opt-icon">👤</span>
-          <span class="opt-title">People per group</span>
-          <span class="opt-desc">Set a desired group size</span>
-        </label>
-
-        <label class="option-card" id="opt-auto">
-          <input type="radio" name="mode" value="auto" />
-          <span class="opt-icon">⚖️</span>
-          <span class="opt-title">Auto-balance</span>
-          <span class="opt-desc">Let the app find the best split</span>
-        </label>
-      </div>
-
-      <div class="value-row" id="valueRow">
-        <label for="groupValue" id="valueLabel">Number of groups:</label>
-        <input type="number" id="groupValue" class="number-input" min="1" value="4" />
-      </div>
-
-      <button class="btn btn-primary" id="generateBtn">Generate Groups</button>
-      <div class="alert alert-error hidden" id="generateError"></div>
-    </section>
-
-    <!-- ── STEP 4: Results ── -->
-    <section class="card hidden" id="section-results">
-      <h2><span class="step-badge">4</span> Groups</h2>
-      <div class="results-toolbar">
-        <p class="hint" id="resultsSummary"></p>
-        <div class="toolbar-actions">
-          <button class="btn btn-outline" id="reshuffleBtn">🔀 Reshuffle</button>
-          <button class="btn btn-primary" id="exportBtn">⬇ Export to Excel</button>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover table-sm" id="previewTable">
+            <thead class="table-dark">
+              <tr><th>#</th><th>Name</th><th>People</th></tr>
+            </thead>
+            <tbody id="previewBody"></tbody>
+          </table>
         </div>
       </div>
-      <div class="groups-grid" id="groupsGrid"></div>
-      <div class="alert alert-error hidden" id="exportError"></div>
-    </section>
+    </div>
+
+    <!-- ── STEP 3: Grouping options ── -->
+    <div class="card mb-4 d-none" id="section-options">
+      <div class="card-body">
+        <h2 class="h5 fw-bold mb-3"><span class="badge bg-primary me-2">3</span> Choose Grouping Strategy</h2>
+
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-md-4">
+            <label class="card option-card h-100 text-center p-3" id="opt-count" style="cursor:pointer;">
+              <input type="radio" name="mode" value="count" checked class="d-none" />
+              <div class="fs-2 mb-1">🔢</div>
+              <div class="fw-semibold">Number of groups</div>
+              <div class="text-muted small">Split into a fixed number of groups</div>
+            </label>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="card option-card h-100 text-center p-3" id="opt-size" style="cursor:pointer;">
+              <input type="radio" name="mode" value="size" class="d-none" />
+              <div class="fs-2 mb-1">👤</div>
+              <div class="fw-semibold">People per group</div>
+              <div class="text-muted small">Set a desired group size</div>
+            </label>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="card option-card h-100 text-center p-3" id="opt-auto" style="cursor:pointer;">
+              <input type="radio" name="mode" value="auto" class="d-none" />
+              <div class="fs-2 mb-1">⚖️</div>
+              <div class="fw-semibold">Auto-balance</div>
+              <div class="text-muted small">Let the app find the best split</div>
+            </label>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3 mb-3" id="valueRow">
+          <label for="groupValue" id="valueLabel" class="fw-semibold mb-0">Number of groups:</label>
+          <input type="number" id="groupValue" class="form-control" style="width:90px;" min="1" value="4" />
+        </div>
+
+        <button class="btn btn-primary" id="generateBtn">Generate Groups</button>
+        <div class="alert alert-danger d-none mt-3" id="generateError"></div>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: Results ── -->
+    <div class="card mb-4 d-none" id="section-results">
+      <div class="card-body">
+        <h2 class="h5 fw-bold mb-3"><span class="badge bg-primary me-2">4</span> Groups</h2>
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+          <p class="text-muted mb-0 small" id="resultsSummary"></p>
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-secondary" id="reshuffleBtn">🔀 Reshuffle</button>
+            <button class="btn btn-primary" id="exportBtn">⬇ Export to Excel</button>
+          </div>
+        </div>
+        <div class="row g-3" id="groupsGrid"></div>
+        <div class="alert alert-danger d-none mt-3" id="exportError"></div>
+      </div>
+    </div>
 
   </main>
 
-  <footer class="app-footer">
-    <p>PersonDevider &copy; 2025 – built with ❤️</p>
+  <footer class="bg-white border-top text-center py-3 text-muted small">
+    <p class="mb-0">PersonDevider &copy; 2025 – built with ❤️</p>
   </footer>
 
   <!-- ── Bottom navigation ── -->
-  <nav class="app-nav" aria-label="Main navigation">
-    <button class="nav-btn active" id="navHome" aria-label="Home">
-      <span class="nav-icon-wrap">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
+  <nav class="bg-white border-top sticky-bottom py-2" aria-label="Main navigation">
+    <div class="container d-flex justify-content-center gap-3">
+      <button class="btn btn-light active" id="navHome" aria-label="Home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5Z"/>
           <path d="M9 21V12h6v9"/>
         </svg>
-      </span>
-      Home
-    </button>
-    <button class="nav-btn" id="navSearch" aria-label="Search">
-      <span class="nav-icon-wrap">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
+        <span class="ms-1">Home</span>
+      </button>
+      <button class="btn btn-light" id="navSearch" aria-label="Search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-      </span>
-      Search
-    </button>
-    <button class="nav-btn" id="navProfile" aria-label="Profile">
-      <span class="nav-icon-wrap">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
+        <span class="ms-1">Search</span>
+      </button>
+      <button class="btn btn-light" id="navProfile" aria-label="Profile">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="8" r="4"/>
           <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
         </svg>
-      </span>
-      Profile
-    </button>
+        <span class="ms-1">Profile</span>
+      </button>
+    </div>
   </nav>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
