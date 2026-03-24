@@ -1,6 +1,6 @@
 /* ── State ── */
-let people = [];  // [{ name, count }]
-let groups = [];  // [{ id, members: [{ name, count }], totalPeople }]
+let people = [];
+let groups = [];
 let currentMode = 'count';
 
 /* ── DOM refs ── */
@@ -8,62 +8,63 @@ const dropZone    = document.getElementById('dropZone');
 const fileInput   = document.getElementById('fileInput');
 const fileName    = document.getElementById('fileName');
 const uploadError = document.getElementById('uploadError');
+const browseBtn   = document.getElementById('browseBtnNew');
 
-const sectionPreview  = document.getElementById('section-preview');
-const previewBody     = document.getElementById('previewBody');
-const totalSummary    = document.getElementById('totalSummary');
-const previewSearch   = document.getElementById('previewSearch');
+const insightsCount  = document.getElementById('insightsCount');
+const insightsDetail = document.getElementById('insightsDetail');
 
-const sectionOptions  = document.getElementById('section-options');
-const modeRadios      = document.querySelectorAll('input[name="mode"]');
-const optCards        = document.querySelectorAll('.option-card');
-const valueRow        = document.getElementById('valueRow');
-const valueLabel      = document.getElementById('valueLabel');
-const groupValue      = document.getElementById('groupValue');
-const generateBtn     = document.getElementById('generateBtn');
-const generateError   = document.getElementById('generateError');
+const changeStrategyBtn = document.getElementById('changeStrategyBtn');
+const strategyOptions   = document.getElementById('section-options');
+const strategyName      = document.getElementById('strategyName');
+const modeRadios        = document.querySelectorAll('input[name="mode"]');
+const optCards          = document.querySelectorAll('.option-card');
+const valueRow          = document.getElementById('valueRow');
+const valueLabel        = document.getElementById('valueLabel');
+const groupValue        = document.getElementById('groupValue');
+const generateError     = document.getElementById('generateError');
 
-const sectionResults  = document.getElementById('section-results');
-const resultsSummary  = document.getElementById('resultsSummary');
-const groupsGrid      = document.getElementById('groupsGrid');
-const reshuffleBtn    = document.getElementById('reshuffleBtn');
-const exportBtn       = document.getElementById('exportBtn');
-const exportError     = document.getElementById('exportError');
+const sectionPreview = document.getElementById('section-preview');
+const previewBody    = document.getElementById('previewBody');
+const previewSearch  = document.getElementById('previewSearch');
+const exportDraftBtn = document.getElementById('exportDraftBtn');
+const cleanDataBtn   = document.getElementById('cleanDataBtn');
 
-/* ── Navigation ── */
-const navHome    = document.getElementById('navHome');
-const navSearch  = document.getElementById('navSearch');
-const navProfile = document.getElementById('navProfile');
+const ctaSection = document.getElementById('ctaSection');
+const ctaDesc    = document.getElementById('ctaDesc');
+const generateBtn = document.getElementById('generateBtn');
 
-navHome.addEventListener('click', () => {
-  setActiveNav(navHome);
-  document.querySelector('.container').scrollTo({ top: 0, behavior: 'smooth' });
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+const sectionResults = document.getElementById('section-results');
+const resultsSummary = document.getElementById('resultsSummary');
+const groupsGrid     = document.getElementById('groupsGrid');
+const reshuffleBtn   = document.getElementById('reshuffleBtn');
+const exportBtn      = document.getElementById('exportBtn');
+const exportError    = document.getElementById('exportError');
+
+const fabBtn = document.getElementById('fabBtn');
+
+/* ── Strategy toggle ── */
+changeStrategyBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  const isOpen = !strategyOptions.classList.contains('hidden');
+  strategyOptions.classList.toggle('hidden', isOpen);
+  changeStrategyBtn.textContent = isOpen ? 'Change Strategy →' : 'Hide Options ↑';
 });
 
-navSearch.addEventListener('click', () => {
-  setActiveNav(navSearch);
-  if (!sectionPreview.classList.contains('d-none')) {
-    sectionPreview.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    previewSearch.focus();
-  }
-});
+/* ── FAB scrolls to top ── */
+fabBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-navProfile.addEventListener('click', () => {
-  setActiveNav(navProfile);
+/* ── Browse button ── */
+browseBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  fileInput.click();
 });
-
-function setActiveNav(activeBtn) {
-  [navHome, navSearch, navProfile].forEach((btn) => btn.classList.remove('active'));
-  activeBtn.classList.add('active');
-}
 
 /* ══════════════════════════════════════════
    FILE UPLOAD
 ══════════════════════════════════════════ */
 
 dropZone.addEventListener('click', (e) => {
-  if (e.target.closest('label')) return;
+  if (e.target.closest('.browse-btn')) return;
   fileInput.click();
 });
 dropZone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
@@ -105,14 +106,17 @@ async function processFile(file) {
 }
 
 function showPreview() {
-  const total = people.reduce((s, p) => s + p.count, 0);
-  totalSummary.innerHTML =
-    `${people.length} entr${people.length === 1 ? 'y' : 'ies'} imported &nbsp;·&nbsp; <strong>${total} people</strong> in total`;
+  const total   = people.reduce((s, p) => s + p.count, 0);
+  const entries = people.length;
+
+  insightsCount.textContent  = total;
+  insightsDetail.textContent = `${entries} unique entr${entries === 1 ? 'y' : 'ies'} found in current buffer.`;
+  ctaDesc.textContent = `The divider will process ${total} people into balanced segments based on your current settings.`;
 
   renderPreviewRows(people);
 
   show(sectionPreview);
-  show(sectionOptions);
+  show(ctaSection);
   updateValueRow();
 }
 
@@ -120,7 +124,26 @@ function renderPreviewRows(rows) {
   previewBody.innerHTML = '';
   rows.forEach((p, i) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${i + 1}</td><td>${escHtml(p.name)}</td><td>${p.count}</td>`;
+    tr.innerHTML = `
+      <td class="table-index">${String(i + 1).padStart(2, '0')}</td>
+      <td class="table-name">${escHtml(p.name)}</td>
+      <td>
+        <span class="group-size-chip">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          ${p.count}
+        </span>
+      </td>
+      <td class="table-actions">
+        <button class="table-action-btn delete-person-btn" title="Remove entry" aria-label="Remove ${escHtml(p.name)}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </td>`;
+
+    tr.querySelector('.delete-person-btn').addEventListener('click', () => {
+      people = people.filter((_, idx) => idx !== i);
+      showPreview();
+    });
+
     previewBody.appendChild(tr);
   });
 }
@@ -128,29 +151,56 @@ function renderPreviewRows(rows) {
 /* ── Preview search filter ── */
 previewSearch.addEventListener('input', () => {
   const q = previewSearch.value.trim().toLowerCase();
-  if (!q) {
-    renderPreviewRows(people);
-    return;
-  }
+  if (!q) { renderPreviewRows(people); return; }
   const filtered = people.filter((p) => p.name.toLowerCase().includes(q));
   renderPreviewRows(filtered);
+});
+
+/* ── Export Draft: downloads current people list as CSV ── */
+exportDraftBtn.addEventListener('click', () => {
+  if (people.length === 0) return;
+  const lines = ['Name,Group Size', ...people.map((p) => `"${p.name.replace(/"/g, '""')}",${p.count}`)];
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'draft.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+/* ── Clean Data: resets to upload state ── */
+cleanDataBtn.addEventListener('click', () => {
+  if (!confirm('Clear all imported data?')) return;
+  people = [];
+  groups = [];
+  fileName.textContent = '';
+  fileInput.value      = '';
+  insightsCount.textContent  = '0';
+  insightsDetail.textContent = 'Upload a file to begin.';
+  hide(sectionPreview);
+  hide(ctaSection);
+  hide(sectionResults);
 });
 
 /* ══════════════════════════════════════════
    GROUPING OPTIONS
 ══════════════════════════════════════════ */
 
+const strategyLabels = { count: 'Balanced Count', size: 'People per Group', auto: 'Auto-Balance' };
+
 modeRadios.forEach((radio) => {
   radio.addEventListener('change', () => {
     currentMode = radio.value;
-    // Update visual selection on option cards
     optCards.forEach((card) => card.classList.remove('selected'));
     radio.closest('.option-card').classList.add('selected');
+    strategyName.textContent = strategyLabels[currentMode] || 'Balanced Count';
     updateValueRow();
   });
 });
 
-// Also handle clicks on the entire card label
 optCards.forEach((card) => {
   card.addEventListener('click', () => {
     const radio = card.querySelector('input[type=radio]');
@@ -161,13 +211,12 @@ optCards.forEach((card) => {
 
 function updateValueRow() {
   if (currentMode === 'auto') {
-    valueRow.classList.add('d-none');
+    valueRow.classList.add('hidden');
   } else {
-    valueRow.classList.remove('d-none');
-    valueLabel.textContent =
-      currentMode === 'count' ? 'Number of groups:' : 'People per group:';
+    valueRow.classList.remove('hidden');
+    valueLabel.textContent = currentMode === 'count' ? 'Number of groups:' : 'People per group:';
     groupValue.value = currentMode === 'count' ? '4' : '8';
-    groupValue.min = 1;
+    groupValue.min   = 1;
   }
 }
 
@@ -192,9 +241,9 @@ function generateGroups() {
     }
   } else if (currentMode === 'size') {
     const size = Math.max(1, parseInt(groupValue.value) || 1);
-    numGroups = Math.max(1, Math.ceil(total / size));
+    numGroups  = Math.max(1, Math.ceil(total / size));
   } else {
-    // Auto: aim for groups of 6–8 people
+    // Auto: aim for groups of ~7 people
     numGroups = Math.max(1, Math.round(total / 7));
   }
 
@@ -230,64 +279,48 @@ function buildGroups(entries, numGroups) {
 ══════════════════════════════════════════ */
 
 function renderGroups() {
-  const total = people.reduce((s, p) => s + p.count, 0);
-  const sizes = groups.map((g) => g.totalPeople);
+  const total   = people.reduce((s, p) => s + p.count, 0);
+  const sizes   = groups.map((g) => g.totalPeople);
   const minSize = Math.min(...sizes);
   const maxSize = Math.max(...sizes);
 
   resultsSummary.innerHTML =
     `${groups.length} group${groups.length !== 1 ? 's' : ''} &nbsp;·&nbsp; ` +
     `${total} people total &nbsp;·&nbsp; ` +
-    `group sizes: <strong>${minSize}–${maxSize}</strong> people`;
+    `sizes: <strong>${minSize}–${maxSize}</strong>`;
 
   groupsGrid.innerHTML = '';
   groups.forEach((group) => {
-    const col = document.createElement('div');
-    col.className = 'col-12 col-sm-6 col-lg-4';
-    col.innerHTML = `
-      <div class="card h-100">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-          <h3 class="h6 mb-0 fw-bold">Group ${group.id}</h3>
-          <span class="badge bg-light text-primary">👥 ${group.totalPeople}</span>
-        </div>
-        <div class="card-body p-2">
-          ${group.members
-            .map(
-              (m) => `
-            <div class="d-flex justify-content-between align-items-center px-2 py-1 mb-1 rounded bg-light">
-              <span class="fw-medium">${escHtml(m.name)}</span>
-              <span class="badge bg-secondary">${m.count}</span>
-            </div>`
-            )
-            .join('')}
-        </div>
-        <div class="card-footer d-flex justify-content-end gap-2 bg-light">
-          <button class="btn btn-sm btn-primary icon-btn-edit" title="Edit group" aria-label="Edit group ${group.id}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>
-          </button>
-          <button class="btn btn-sm btn-secondary icon-btn-link" title="Copy group" aria-label="Copy group ${group.id}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          </button>
-          <button class="btn btn-sm btn-warning icon-btn-block" title="Clear group" aria-label="Clear group ${group.id}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-          </button>
-          <button class="btn btn-sm btn-danger icon-btn-delete" title="Delete group" aria-label="Delete group ${group.id}" data-group-id="${group.id}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-          </button>
-        </div>
+    const card = document.createElement('div');
+    card.className = 'group-card';
+    card.innerHTML = `
+      <div class="group-card-header">
+        <span class="group-card-title">Group ${group.id}</span>
+        <span class="group-card-badge">👥 ${group.totalPeople}</span>
+      </div>
+      <div class="group-card-body">
+        ${group.members.map((m) => `
+          <div class="group-member">
+            <span class="group-member-name">${escHtml(m.name)}</span>
+            <span class="group-member-count">${m.count}</span>
+          </div>`).join('')}
+      </div>
+      <div class="group-card-footer">
+        <button class="group-action-btn danger icon-btn-delete" title="Delete group" aria-label="Delete group ${group.id}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
       </div>`;
 
-    // Delete group handler
-    col.querySelector('.icon-btn-delete').addEventListener('click', () => {
+    card.querySelector('.icon-btn-delete').addEventListener('click', () => {
       groups = groups.filter((g) => g.id !== group.id);
       if (groups.length === 0) {
-        sectionResults.classList.add('d-none');
+        hide(sectionResults);
       } else {
         renderGroups();
       }
     });
 
-    groupsGrid.appendChild(col);
+    groupsGrid.appendChild(card);
   });
 
   show(sectionResults);
@@ -305,12 +338,11 @@ reshuffleBtn.addEventListener('click', () => {
   const total = shuffled.reduce((s, p) => s + p.count, 0);
   let numGroups = groups.length;
 
-  // Re-derive numGroups from current mode/value in case user changed it
   if (currentMode === 'count') {
     numGroups = Math.max(1, parseInt(groupValue.value) || groups.length);
   } else if (currentMode === 'size') {
     const size = Math.max(1, parseInt(groupValue.value) || 1);
-    numGroups = Math.max(1, Math.ceil(total / size));
+    numGroups  = Math.max(1, Math.ceil(total / size));
   }
 
   groups = buildGroups(shuffled, numGroups);
@@ -322,14 +354,15 @@ exportBtn.addEventListener('click', exportToExcel);
 
 async function exportToExcel() {
   setError(exportError, '');
-  exportBtn.disabled = true;
+  const origText = exportBtn.textContent;
+  exportBtn.disabled  = true;
   exportBtn.textContent = '⏳ Exporting…';
 
   try {
     const res = await fetch('/api/export', {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ groups }),
+      body:    JSON.stringify({ groups }),
     });
 
     if (!res.ok) {
@@ -339,8 +372,8 @@ async function exportToExcel() {
     }
 
     const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
     a.href = url;
     a.download = 'groups.xlsx';
     document.body.appendChild(a);
@@ -350,8 +383,8 @@ async function exportToExcel() {
   } catch (err) {
     setError(exportError, 'Network error – could not reach the server.');
   } finally {
-    exportBtn.disabled = false;
-    exportBtn.textContent = '⬇ Export to Excel';
+    exportBtn.disabled  = false;
+    exportBtn.textContent = origText;
   }
 }
 
@@ -359,15 +392,16 @@ async function exportToExcel() {
    HELPERS
 ══════════════════════════════════════════ */
 
-function show(el) { el.classList.remove('d-none'); }
+function show(el) { el.classList.remove('hidden'); }
+function hide(el) { el.classList.add('hidden'); }
 
 function setError(el, msg) {
   if (msg) {
     el.textContent = msg;
-    el.classList.remove('d-none');
+    el.classList.remove('hidden');
   } else {
     el.textContent = '';
-    el.classList.add('d-none');
+    el.classList.add('hidden');
   }
 }
 
