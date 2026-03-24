@@ -12,6 +12,7 @@ const uploadError = document.getElementById('uploadError');
 const sectionPreview  = document.getElementById('section-preview');
 const previewBody     = document.getElementById('previewBody');
 const totalSummary    = document.getElementById('totalSummary');
+const previewSearch   = document.getElementById('previewSearch');
 
 const sectionOptions  = document.getElementById('section-options');
 const modeRadios      = document.querySelectorAll('input[name="mode"]');
@@ -28,6 +29,34 @@ const groupsGrid      = document.getElementById('groupsGrid');
 const reshuffleBtn    = document.getElementById('reshuffleBtn');
 const exportBtn       = document.getElementById('exportBtn');
 const exportError     = document.getElementById('exportError');
+
+/* ── Navigation ── */
+const navHome    = document.getElementById('navHome');
+const navSearch  = document.getElementById('navSearch');
+const navProfile = document.getElementById('navProfile');
+
+navHome.addEventListener('click', () => {
+  setActiveNav(navHome);
+  document.querySelector('.container').scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+navSearch.addEventListener('click', () => {
+  setActiveNav(navSearch);
+  if (!sectionPreview.classList.contains('hidden')) {
+    sectionPreview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    previewSearch.focus();
+  }
+});
+
+navProfile.addEventListener('click', () => {
+  setActiveNav(navProfile);
+});
+
+function setActiveNav(activeBtn) {
+  [navHome, navSearch, navProfile].forEach((btn) => btn.classList.remove('active'));
+  activeBtn.classList.add('active');
+}
 
 /* ══════════════════════════════════════════
    FILE UPLOAD
@@ -80,17 +109,32 @@ function showPreview() {
   totalSummary.innerHTML =
     `${people.length} entr${people.length === 1 ? 'y' : 'ies'} imported &nbsp;·&nbsp; <strong>${total} people</strong> in total`;
 
-  previewBody.innerHTML = '';
-  people.forEach((p, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${i + 1}</td><td>${escHtml(p.name)}</td><td>${p.count}</td>`;
-    previewBody.appendChild(tr);
-  });
+  renderPreviewRows(people);
 
   show(sectionPreview);
   show(sectionOptions);
   updateValueRow();
 }
+
+function renderPreviewRows(rows) {
+  previewBody.innerHTML = '';
+  rows.forEach((p, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i + 1}</td><td>${escHtml(p.name)}</td><td>${p.count}</td>`;
+    previewBody.appendChild(tr);
+  });
+}
+
+/* ── Preview search filter ── */
+previewSearch.addEventListener('input', () => {
+  const q = previewSearch.value.trim().toLowerCase();
+  if (!q) {
+    renderPreviewRows(people);
+    return;
+  }
+  const filtered = people.filter((p) => p.name.toLowerCase().includes(q));
+  renderPreviewRows(filtered);
+});
 
 /* ══════════════════════════════════════════
    GROUPING OPTIONS
@@ -215,7 +259,32 @@ function renderGroups() {
           </div>`
           )
           .join('')}
+      </div>
+      <div class="group-card-actions">
+        <button class="icon-btn icon-btn-edit" title="Edit group" aria-label="Edit group ${group.id}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>
+        </button>
+        <button class="icon-btn icon-btn-link" title="Copy group" aria-label="Copy group ${group.id}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        </button>
+        <button class="icon-btn icon-btn-block" title="Clear group" aria-label="Clear group ${group.id}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        </button>
+        <button class="icon-btn icon-btn-delete" title="Delete group" aria-label="Delete group ${group.id}" data-group-id="${group.id}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
       </div>`;
+
+    // Delete group handler
+    card.querySelector('.icon-btn-delete').addEventListener('click', () => {
+      groups = groups.filter((g) => g.id !== group.id);
+      if (groups.length === 0) {
+        sectionResults.classList.add('hidden');
+      } else {
+        renderGroups();
+      }
+    });
+
     groupsGrid.appendChild(card);
   });
 
